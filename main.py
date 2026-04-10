@@ -4,7 +4,7 @@ from google import genai
 import argparse
 from google.genai import types
 from prompts.prompts import system_prompt
-from call_functions import available_functions
+from call_functions import available_functions, call_function
 
 
 load_dotenv()
@@ -34,4 +34,17 @@ if response.function_calls is None:
     print(response.text)
 else:
     for func_call in response.function_calls:
-        print(f"Calling function: {func_call.name}({func_call.args})")
+        function_call_result = call_function(func_call, args.verbose)
+
+        if len(function_call_result.parts) == 0:
+            raise Exception("Something went wrong")
+
+        if function_call_result.parts[0].function_response is None:
+            raise Exception("Something went wrong")
+
+        if function_call_result.parts[0].function_response.response is None:
+            raise Exception("Something went wrong")
+
+        if args.verbose:
+            print(f"-> {function_call_result.parts[0].function_response.response}")
+
